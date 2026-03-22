@@ -34,12 +34,14 @@ export default class ColumnChart {
       throw new Error('Could not find column chart');
     }
 
-    if (data?.length === 0) {
+    if (!data || data.length === 0) {
       chartDiv.innerHTML = '';
       chartDiv.classList.add('column-chart_loading');
     } else {
-      const dataHtml = data?.map(
-        (dataValue) => `<div style="&#45;&#45;value: ${dataValue}" data-tooltip="${dataValue * 100 / 50}%"></div>`
+      const maxValue = Math.max(...data);
+      const scale = this.chartHeight / maxValue;
+      const dataHtml = data.map(
+        (dataValue) => `<div style="&#45;&#45;value: ${Math.floor(dataValue * scale)}" data-tooltip="${(dataValue / maxValue * 100).toFixed(0)}%"></div>`
       ).join('');
       if (dataHtml) {
         chartDiv.innerHTML = dataHtml;
