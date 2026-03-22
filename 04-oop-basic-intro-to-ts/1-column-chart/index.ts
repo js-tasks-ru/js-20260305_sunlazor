@@ -21,26 +21,45 @@ export default class ColumnChart {
 
   constructor(private columnChart: Options | undefined) {
     this.element = this.makeChartTemplate();
+    this.update(this.columnChart?.data);
   }
 
   // Принимает новый массив данных и обновляет только тело графика (столбцы), не перерисовывая весь компонент целиком.
-  update(data) {
+  update(data: number[] | undefined) {
+    const chartDiv = this.element.querySelector('.column-chart__chart');
+    if (!chartDiv) {
+      throw new Error('Could not find column chart');
+    }
+
+    if (data?.length === 0) {
+      chartDiv.innerHTML = '';
+      chartDiv.classList.add('column-chart_loading');
+    } else {
+      const dataHtml = data?.map(
+        (dataValue) => `<div style="&#45;&#45;value: ${dataValue}" data-tooltip="${dataValue * 100 / 50}%"></div>`
+      ).join('');
+      if (dataHtml) {
+        chartDiv.innerHTML = dataHtml;
+      }
+    }
   }
 
   // Удаляет элемент компонента из DOM.
   remove() {
+    this.element.remove();
   }
 
   // Полностью удаляет компонент, очищает обработчики событий и ссылки на DOM-элементы (для предотвращения утечек памяти).
   destroy() {
-
+    this.remove();
+    this.columnChart = undefined;
   }
 
   private makeChartTemplate() {
     const chartLinkHtml = this.columnChart?.link
       ? `<a href="${this.columnChart?.link}" class="column-chart__link">View all</a>`
       : '';
-    const chartTemplate = createElement(`
+    return createElement(`
     <div class="column-chart" style="--chart-height: ${this.chartHeight}">
       <div class="column-chart__title">
 <!--        Total orders-->
@@ -57,22 +76,5 @@ export default class ColumnChart {
       </div>
     </div>
     `);
-
-    if (this.columnChart?.data?.length === 0) {
-      chartTemplate.classList.add('column-chart_loading');
-    } else {
-      const dataHtml = this.columnChart?.data?.map(
-        (dataValue) => `<div style="&#45;&#45;value: ${dataValue}" data-tooltip="${dataValue * 100 / 50}%"></div>`
-      ).join('');
-      console.log(dataHtml);
-      if (dataHtml) {
-        const chartDiv = chartTemplate.querySelector('.column-chart__chart');
-        if (chartDiv) {
-          chartDiv.innerHTML = dataHtml;
-        }
-      }
-    }
-
-    return chartTemplate;
   }
 }
