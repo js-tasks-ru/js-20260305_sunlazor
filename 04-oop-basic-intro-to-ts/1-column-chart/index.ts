@@ -36,7 +36,7 @@ export default class ColumnChart {
 
     if (!data || data.length === 0) {
       chartDiv.innerHTML = '';
-      chartDiv.classList.add('column-chart_loading');
+      this.element.classList.toggle('column-chart_loading', true);
     } else {
       const maxValue = Math.max(...data);
       const scale = this.chartHeight / maxValue;
@@ -64,14 +64,13 @@ export default class ColumnChart {
     const chartLinkHtml = this.columnChart?.link
       ? `<a href="${this.columnChart?.link}" class="column-chart__link">View all</a>`
       : '';
+
     let value;
-    if (this.columnChart) {
-      if (this.columnChart.value) {
-        if (this.columnChart.formatHeading) {
-          value = this.columnChart.formatHeading(this.columnChart.value);
-        } else {
-          value = this.columnChart.value;
-        }
+    if (this.columnChart?.value) {
+      if (this.columnChart.formatHeading) {
+        value = this.columnChart.formatHeading(this.columnChart.value);
+      } else {
+        value = this.columnChart.value;
       }
     }
 
