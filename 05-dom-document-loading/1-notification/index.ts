@@ -8,23 +8,36 @@ interface Options {
 export default class NotificationMessage {
   private static element: HTMLElement;
 
-  constructor(private message: string, private options: Options = {
-    duration: 2000,
-    type: 'success',
-  }) {
+  constructor(private message: string, private options: Options = {}) {
     if (NotificationMessage.element) {
       this.remove();
     }
     NotificationMessage.element = this.makeNotificationTemplate();
   }
 
+  private static get type() {
+    return 'success';
+  }
+
+  private static get duration() {
+    return 2000;
+  }
+
   public get element() {
     return NotificationMessage.element
   }
 
-  public show(target: HTMLElement | undefined) {
+  public get type() {
+    return this.options?.type ? this.options.type : NotificationMessage.type
+  }
+
+  public get duration() {
+    return this.options?.duration ? this.options.duration : NotificationMessage.duration;
+  }
+
+  public show(target?: HTMLElement) {
     target ? target.append(NotificationMessage.element) : document.body.append(NotificationMessage.element);
-    setTimeout(this.remove, this.options.duration);
+    setTimeout(this.remove, this.duration);
   }
 
   public remove() {
@@ -36,15 +49,11 @@ export default class NotificationMessage {
   }
 
   private makeNotificationTemplate() {
-    const duration = typeof this.options?.duration === 'number'
-      ? this.options?.duration + 'ms'
-      : this.options?.duration
-    ;
     return createElement(`
-      <div class="notification ${this.options?.type}" style="--value:${duration}">
+      <div class="notification ${this.type}" style="--value:${this.duration / 1000}s">
         <div class="timer"></div>
         <div class="inner-wrapper">
-          <div class="notification-header">${this.options?.type}</div>
+          <div class="notification-header">${this.type}</div>
           <div class="notification-body">
             ${this.message}
           </div>
