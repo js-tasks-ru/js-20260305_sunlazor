@@ -21,6 +21,7 @@ export default class SortableTable {
   private makeTableTemplate() {
     let table = createElement('<div class="sortable-table"></div>');
     table.appendChild(this.makeTableHeader());
+    table.appendChild(this.makeTableBody());
 
     return table;
   }
@@ -43,5 +44,28 @@ export default class SortableTable {
     });
 
     return tableRow;
+  }
+
+  private makeTableBody() {
+    let body = createElement(`
+      <div data-element="body" class="sortable-table__body"></div>
+    `);
+
+    this.data.forEach((row) => {
+      let divRow = createElement(`<a class="sortable-table__row"></a>`);
+      this.headersConfig.forEach((headerColumn) => {
+        if (row[headerColumn.id]) {
+          let cell = createElement(`
+            <div class="sortable-table__cell">${headerColumn?.template ? headerColumn?.template(row[headerColumn.id]) : row[headerColumn.id]}</div>
+          `);
+
+          divRow.appendChild(cell);
+        }
+      });
+
+      body.appendChild(divRow);
+    });
+
+    return body;
   }
 }
