@@ -1,3 +1,5 @@
+import {createElement} from "../../shared/utils/create-element";
+
 type SortOrder = 'asc' | 'desc';
 
 type SortableTableData = Record<string, string | number>;
@@ -11,6 +13,35 @@ interface SortableTableHeader {
 }
 
 export default class SortableTable {
-  constructor(headersConfig: SortableTableHeader[] = [], data: SortableTableData[] = []) {
+  private element: HTMLElement;
+  constructor(private headersConfig: SortableTableHeader[] = [], private data: SortableTableData[] = []) {
+    this.element = this.makeTableTemplate();
+  }
+
+  private makeTableTemplate() {
+    let table = createElement('<div class="sortable-table"></div>');
+    table.appendChild(this.makeTableHeader());
+
+    return table;
+  }
+
+  private makeTableHeader() {
+    let tableRow = createElement(`
+      <div data-element="header" class="sortable-table__header sortable-table__row">
+      </div>
+    `);
+
+    this.headersConfig.forEach((column) => {
+      let cell = createElement(`
+        <div class="sortable-table__cell" data-id="${column.id}" data-sortable="${column?.sortable ? column.sortable : 'false'}" data-order="asc">
+          <span>${column.title}</span>
+          ${column?.sortable ? '<span data-element="arrow" class="sortable-table__sort-arrow"><span class="sort-arrow"></span></span>' : ''}
+        </div>
+      `);
+
+      tableRow.appendChild(cell);
+    });
+
+    return tableRow;
   }
 }
