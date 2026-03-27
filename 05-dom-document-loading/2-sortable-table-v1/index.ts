@@ -18,6 +18,44 @@ export default class SortableTable {
     this.element = this.makeTableTemplate();
   }
 
+  // sort(field, order): сортирует данные по колонке field в порядке asc/desc и перерисовывает тело таблицы.
+  // Сортировка строк — через localeCompare (ru/en).
+  // Сортировка чисел — через числовое сравнение.
+  // Если колонка не найдена или не сортируемая — ничего не делаем.
+  public sort(field: string, order: SortOrder = 'asc') {
+    const fieldInHeader = this.headersConfig.filter((header) => header.title === field );
+    const isFieldNotFound = fieldInHeader.length === 0;
+    const isFieldNotSortable = fieldInHeader[0]?.sortable !== true;
+    if (isFieldNotFound || isFieldNotSortable) {
+      return;
+    }
+
+    this.data.sort((a, b) => {
+      if (fieldInHeader[0]?.sortType === 'string') {
+        let compareResult = a[field].toString().localeCompare(
+          b[field].toString(), ['ru', 'en'], {'caseFirst': 'upper', 'sensitivity': 'variant'}
+        );
+        const direction = order === 'asc' ? 1 : -1;
+
+        return direction * compareResult;
+      }
+
+      if (fieldInHeader[0]?.sortType === 'number') {
+        let compareResult =
+          parseFloat(typeof a[field] === 'string' ? a[field] : a[field].toString())
+          - parseFloat(typeof b[field] === 'string' ? b[field] : b[field].toString())
+        ;
+        const direction = order === 'asc' ? 1 : -1;
+
+        return direction * compareResult;
+      }
+
+      return 0;
+    });
+
+    this.render();
+  }
+
   private makeTableTemplate() {
     let table = createElement('<div class="sortable-table"></div>');
     table.appendChild(this.makeTableHeader());
@@ -67,5 +105,22 @@ export default class SortableTable {
     });
 
     return body;
+  }
+
+  public remove() {
+    if (this.element) {
+      this.element.remove();
+    }
+  }
+
+  public destroy() {
+    this.remove();
+    this.headersConfig = [];
+    this.data = [];
+  }
+
+  private render() {
+    this.remove();
+    this.element = this.makeTableTemplate();
   }
 }
