@@ -72,7 +72,7 @@ export default class SortableTable {
 
     this.headersConfig.forEach((column) => {
       let cell = createElement(`
-        <div class="sortable-table__cell" data-id="${column.id}" data-sortable="${column?.sortable ? column.sortable : 'false'}" data-order="asc">
+        <div class="sortable-table__cell" data-id="${column.id}" data-sortable="${column?.sortable ? column.sortable : 'false'}">
           <span>${column.title}</span>
           ${column?.sortable ? '<span data-element="arrow" class="sortable-table__sort-arrow"><span class="sort-arrow"></span></span>' : ''}
         </div>
