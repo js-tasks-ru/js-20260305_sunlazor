@@ -19,6 +19,8 @@ export default class ColumnChart {
   // Фиксированная высота графика (должна быть равна 50).
   chartHeight = 50;
 
+  private chartDiv: HTMLElement | null = null;
+
   constructor(private columnChart: Options = {
     data: [],
     label: '',
@@ -32,13 +34,15 @@ export default class ColumnChart {
 
   // Принимает новый массив данных и обновляет только тело графика (столбцы), не перерисовывая весь компонент целиком.
   update(data: number[] | undefined) {
-    const chartDiv = this.element.querySelector('.column-chart__chart');
-    if (!chartDiv) {
-      throw new Error('Could not find column chart');
+    if (!this.chartDiv) {
+      this.chartDiv = this.element.querySelector<HTMLElement>('div[data-element="body"]');
+      if (!this.chartDiv) {
+        throw new Error('Could not find column chart');
+      }
     }
 
     if (!data || data.length === 0) {
-      chartDiv.innerHTML = '';
+      this.chartDiv.innerHTML = '';
       this.element.classList.toggle('column-chart_loading', true);
     } else {
       const maxValue = Math.max(...data);
@@ -47,7 +51,7 @@ export default class ColumnChart {
         (dataValue) => `<div style="&#45;&#45;value: ${Math.floor(dataValue * scale)}" data-tooltip="${(dataValue / maxValue * 100).toFixed(0)}%"></div>`
       ).join('');
       if (dataHtml) {
-        chartDiv.innerHTML = dataHtml;
+        this.chartDiv.innerHTML = dataHtml;
       }
     }
   }
