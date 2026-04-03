@@ -11,11 +11,13 @@ type SortableTableSort = {
 
 type CustomSorting = (a: SortableTableData, b: SortableTableData) => number;
 
+type SortType = 'string' | 'number' | 'custom';
+
 interface SortableTableHeader {
   id: string;
   title: string;
   sortable?: boolean;
-  sortType?: 'string' | 'number' | 'custom';
+  sortType?: SortType;
   template?: (value: string | number) => string;
   customSorting?: (a: SortableTableData, b: SortableTableData) => number;
 }
@@ -91,7 +93,7 @@ export default class SortableTable {
     }
   }
 
-  private sortData(sortType: 'string' | 'number' | 'custom', field: string, order: SortOrder, customSort: CustomSorting) {
+  private sortData(sortType: SortType, field: string, order: SortOrder, customSort: CustomSorting) {
     this.data.sort((a, b) => {
       if (sortType === 'string') {
         let compareResult = a[field].toString().localeCompare(
