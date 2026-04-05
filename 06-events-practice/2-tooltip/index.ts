@@ -1,25 +1,25 @@
 import {createElement} from "../../shared/utils/create-element";
 
 export default class Tooltip {
-  private static tooltip: HTMLElement | null = null;
+  public static element: HTMLElement | null = null;
 
   constructor() {
-    if (!Tooltip.tooltip) {
-      Tooltip.tooltip = this.makeTooltipTemplate();
+    if (!Tooltip.element) {
+      Tooltip.element = this.makeTooltipTemplate();
     }
   }
 
   public get element() {
-    if (!Tooltip.tooltip) {
-      Tooltip.tooltip = this.makeTooltipTemplate();
+    if (!Tooltip.element) {
+      Tooltip.element = this.makeTooltipTemplate();
     }
 
-    return Tooltip.tooltip;
+    return Tooltip.element;
   }
 
-  public render(html: string | null) {
+  public render(html: string) {
     this.element.textContent = html;
-    document.appendChild(this.element);
+    document.body.appendChild(this.element);
   }
 
   public initialize() {
@@ -32,11 +32,6 @@ export default class Tooltip {
     });
     document.addEventListener('pointerout', (event) => {
       this.destroy();
-
-      // const tooltipTarget = event.target as HTMLElement;
-      // if (tooltipTarget.dataset.tooltip) {
-      //   this.tooltip.textContent = tooltipTarget.dataset.tooltip;
-      // }
     });
   }
 
