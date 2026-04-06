@@ -1,16 +1,51 @@
+import {createElement} from "../../shared/utils/create-element";
+
 type DoubleSliderSelected = {
   from: number;
   to: number;
 };
 
+type FormatValue = (value: number) => string;
+
 interface Options {
   min?: number;
   max?: number;
-  formatValue?: (value: number) => string;
+  formatValue?: FormatValue;
   selected?: DoubleSliderSelected;
 }
 
 export default class DoubleSlider {
-  constructor({ }: Options = {}) {
+  public min: number;
+  public max: number;
+  public element: HTMLElement;
+
+  private formatValue: FormatValue;
+  private selected: DoubleSliderSelected;
+
+  constructor(sliderConf: Options = {}) {
+    this.min = sliderConf?.min || 0;
+    this.max = sliderConf?.max || Number.MAX_SAFE_INTEGER;
+    this.formatValue = sliderConf?.formatValue ?? function(value: number) { return value.toString() };
+    this.selected = sliderConf?.selected ?? { from: this.max * 0.25, to: this.max * 0.75};
+
+    this.element = this.makeSliderTemplate();
+  }
+
+  public destroy() {
+
+  }
+
+  private makeSliderTemplate() {
+    return createElement(`
+        <div class="range-slider">
+          <span>$30</span>
+          <div class="range-slider__inner">
+            <span class="range-slider__progress" style="left: 0%; right: 0%"></span>
+            <span class="range-slider__thumb-left" style="left: 0%"></span>
+            <span class="range-slider__thumb-right" style="right: 0%"></span>
+          </div>
+          <span>$70</span>
+        </div>
+    `);
   }
 }
