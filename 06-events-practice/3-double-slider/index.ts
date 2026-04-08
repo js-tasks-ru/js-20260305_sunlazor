@@ -21,6 +21,9 @@ export default class DoubleSlider {
 
   private formatValue: FormatValue;
   private selected: DoubleSliderSelected;
+  private pointermoveEvent: ((event: PointerEvent) => void) | null = null;
+  private pointerdownEvent: ((event: PointerEvent) => void) | null = null;
+  private pointerupEvent: (() => void) | null = null;
 
   constructor(sliderConf: Options = {}) {
     this.min = sliderConf?.min || 0;
@@ -33,7 +36,9 @@ export default class DoubleSlider {
   }
 
   public destroy() {
-
+    this.pointerdownEvent = null;
+    this.pointermoveEvent = null;
+    this.pointerupEvent = null;
   }
 
   private makeSliderTemplate() {
@@ -54,22 +59,15 @@ export default class DoubleSlider {
   }
 
   private addThumbEvents() {
-    this.element.addEventListener('pointerdown', (event: PointerEvent) => {
+    this.pointerdownEvent = (event: PointerEvent) => {
       const target = event.target as HTMLElement;
       if (target.classList.contains('range-slider__thumb-left')) {
         const sliderLeft
           = this.element?.querySelector('.range-slider__inner')?.getBoundingClientRect()?.left ?? 0;
-        // const sliderWidth
-        //   = this.element?.querySelector('.range-slider__inner')?.getBoundingClientRect()?.width ?? 0;
         const rightThumb
-          = this.element?.querySelector('.range-slider__thumb-right')?.getBoundingClientRect()?.left ?? 0;
-        document.body.addEventListener('pointermove', (event: PointerEvent) => {
-          console.log('sliderLeft: ', sliderLeft);
-          // el.style.left = event.clientX - parseInt(this.element.style.left) + 'px';
-          target.style.left = Math.max(event.clientX - sliderLeft, 0) + 'px';
-          // target.style.left = Math.max(event.clientX, sliderLeft) + 'px';
-          // target.style.left = event.clientX + 'px';
+          = this.element?.querySelector('.range-slider__thumb-right')?.getBoundingClientRect()?.left ?? sliderLeft;
 
+        this.pointermoveEvent = (event: PointerEvent) => {
           if (event.clientX - sliderLeft < 0) {
             target.style.left = '0px';
           } else if (event.clientX > rightThumb) {
@@ -77,10 +75,26 @@ export default class DoubleSlider {
           } else {
             target.style.left = event.clientX - sliderLeft + 'px';
           }
-          console.log(event.clientX);
-          console.log('thumb: ', target.style.left);
-        })
+        };
+
+        document.body.addEventListener('pointermove', this.pointermoveEvent);
+
+        this.pointerupEvent = ()=> {
+          if (this.pointerdownEvent) {
+            document.body.removeEventListener('pointerdown', this.pointerdownEvent);
+          }
+          if (this.pointermoveEvent) {
+            document.body.removeEventListener('pointermove', this.pointermoveEvent);
+          }
+          if (this.pointerupEvent) {
+            document.body.removeEventListener('pointerup', this.pointerupEvent);
+          }
+        };
+
+        document.body.addEventListener('pointerup', this.pointerupEvent);
       }
-    })
+    }
+
+    this.element.addEventListener('pointerdown', this.pointerdownEvent);
   }
 }
