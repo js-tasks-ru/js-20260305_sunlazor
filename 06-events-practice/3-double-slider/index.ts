@@ -24,7 +24,7 @@ export default class DoubleSlider {
 
   constructor(sliderConf: Options = {}) {
     this.min = sliderConf?.min || 0;
-    this.max = sliderConf?.max || Number.MAX_SAFE_INTEGER;
+    this.max = sliderConf?.max || this.min + 100;
     this.formatValue = sliderConf?.formatValue ?? function(value: number) { return value.toString() };
     this.selected = sliderConf?.selected ?? { from: this.max * 0.25, to: this.max * 0.75};
 
