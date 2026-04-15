@@ -19,7 +19,7 @@ export default class DoubleSlider {
   public max: number;
   public element: HTMLElement;
 
-  private formatValue: FormatValue;
+  private readonly formatValue: FormatValue;
   private selected: DoubleSliderSelected;
   private pointermoveEvent: ((event: PointerEvent) => void) | null = null;
   private pointerdownEvent: ((event: PointerEvent) => void) | null = null;
