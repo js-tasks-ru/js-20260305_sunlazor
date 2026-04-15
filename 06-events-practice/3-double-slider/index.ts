@@ -42,8 +42,8 @@ export default class DoubleSlider {
     this.leftThumb = <HTMLSpanElement>this.element.querySelector('.range-slider__thumb-left');
     this.rightThumb = <HTMLSpanElement>this.element.querySelector('.range-slider__thumb-right');
     this.innerSlider = <HTMLDivElement>this.element.querySelector('.range-slider__inner');
-    this.valueMax = <HTMLSpanElement>this.element.querySelector('.range-slider__value-max');
-    this.valueMin = <HTMLSpanElement>this.element.querySelector('.range-slider__value-min');
+    this.valueMax = <HTMLSpanElement>this.element.querySelector('span[data-element="to"]');
+    this.valueMin = <HTMLSpanElement>this.element.querySelector('span[data-element="from"]');
 
     this.addThumbEvents();
   }
@@ -60,13 +60,13 @@ export default class DoubleSlider {
 
     return createElement(`
         <div class="range-slider">
-          <span class="range-slider__value-min">${this.formatValue(this.min)}</span>
+          <span data-element="from">${this.formatValue(this.min)}</span>
           <div class="range-slider__inner">
             <span class="range-slider__progress" style="left: ${left}%; right: ${right}%"></span>
             <span class="range-slider__thumb-left" style="left: ${left}%"></span>
             <span class="range-slider__thumb-right" style="right: ${right}%"></span>
           </div>
-          <span class="range-slider__value-max">${this.formatValue(this.max)}</span>
+          <span data-element="to">${this.formatValue(this.max)}</span>
         </div>
     `);
   }
