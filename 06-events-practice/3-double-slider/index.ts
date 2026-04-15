@@ -27,6 +27,7 @@ export default class DoubleSlider {
   private readonly leftThumb: HTMLSpanElement;
   private readonly rightThumb: HTMLSpanElement;
   private readonly innerSlider: HTMLDivElement;
+  private readonly sliderBar: HTMLSpanElement;
 
   constructor(sliderConf: Options = {}) {
     this.min = sliderConf?.min || 0;
@@ -35,6 +36,7 @@ export default class DoubleSlider {
     this.selected = sliderConf?.selected ?? { from: this.max * 0.25, to: this.max * 0.75};
 
     this.element = this.makeSliderTemplate();
+    this.sliderBar = <HTMLSpanElement>this.element.querySelector('.range-slider__progress');
     this.leftThumb = <HTMLSpanElement>this.element.querySelector('.range-slider__thumb-left');
     this.rightThumb = <HTMLSpanElement>this.element.querySelector('.range-slider__thumb-right');
     this.innerSlider = <HTMLDivElement>this.element.querySelector('.range-slider__inner');
@@ -71,26 +73,32 @@ export default class DoubleSlider {
       if (thumb.classList.contains('range-slider__thumb-left')) {
         this.addLeftThumbEvents(thumb);
       } else if (thumb.classList.contains('range-slider__thumb-right')) {
-        this.addRightThumbEvents(thumb);
+        this.addRightThumbEvents(thumb, this.sliderBar);
       }
     }
 
     this.element.addEventListener('pointerdown', this.pointerdownEvent);
   }
 
-  private addRightThumbEvents(rightThumb: HTMLElement) {
+  private addRightThumbEvents(rightThumb: HTMLElement, sliderBar: HTMLSpanElement) {
     const sliderLeft= this.innerSlider.getBoundingClientRect().left;
     const leftLimit = this.leftThumb.offsetLeft + this.leftThumb.getBoundingClientRect().width;
     const rightLimit = this.innerSlider.getBoundingClientRect().width;
+    const sliderWidth = this.innerSlider.getBoundingClientRect().width;
+    const leftPercent = 100 * leftLimit / sliderWidth;
 
     this.pointermoveEvent = (event: PointerEvent) => {
       const inSliderCord = event.clientX - sliderLeft;
+      const positionPercent = 100 * inSliderCord / sliderWidth;
       if (inSliderCord < leftLimit) {
-        rightThumb.style.left = leftLimit + 'px';
+        rightThumb.style.left = leftPercent + '%';
+        sliderBar.style.right = 100 - leftPercent + '%';
       } else if (inSliderCord > rightLimit) {
-        rightThumb.style.left = rightLimit + 'px';
+        rightThumb.style.left = 100 + '%';
+        sliderBar.style.right = 0 + '%';
       } else {
-        rightThumb.style.left = inSliderCord + 'px';
+        rightThumb.style.left = positionPercent + '%';
+        sliderBar.style.right = 100 - positionPercent + '%';
       }
     };
 
