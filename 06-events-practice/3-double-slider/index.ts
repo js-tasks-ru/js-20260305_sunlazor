@@ -24,14 +24,22 @@ export default class DoubleSlider {
   private pointermoveEvent: ((event: PointerEvent) => void) | null = null;
   private pointerdownEvent: ((event: PointerEvent) => void) | null = null;
   private pointerupEvent: (() => void) | null = null;
+  private readonly leftThumb: HTMLSpanElement;
+  private readonly rightThumb: HTMLSpanElement;
+  private readonly innerSlider: HTMLDivElement;
 
   constructor(sliderConf: Options = {}) {
     this.min = sliderConf?.min || 0;
     this.max = sliderConf?.max || this.min + 100;
     this.formatValue = sliderConf?.formatValue ?? function(value: number) { return value.toString() };
-    this.selected = sliderConf?.selected ?? { from: this.max * 0.25, to: this.max * 0.75};
+    // this.selected = sliderConf?.selected ?? { from: this.max * 0.25, to: this.max * 0.75};
+    this.selected = sliderConf?.selected ?? { from: 0, to: this.max * 0.75};
 
     this.element = this.makeSliderTemplate();
+    this.leftThumb = <HTMLSpanElement>this.element.querySelector('.range-slider__thumb-left');
+    this.rightThumb = <HTMLSpanElement>this.element.querySelector('.range-slider__thumb-right');
+    this.innerSlider = <HTMLDivElement>this.element.querySelector('.range-slider__inner');
+
     this.addThumbEvents();
   }
 
@@ -60,41 +68,101 @@ export default class DoubleSlider {
 
   private addThumbEvents() {
     this.pointerdownEvent = (event: PointerEvent) => {
-      const target = event.target as HTMLElement;
-      if (target.classList.contains('range-slider__thumb-left')) {
-        const sliderLeft
-          = this.element?.querySelector('.range-slider__inner')?.getBoundingClientRect()?.left ?? 0;
-        const rightThumb
-          = this.element?.querySelector('.range-slider__thumb-right')?.getBoundingClientRect()?.left ?? sliderLeft;
+      const thumb = event.target as HTMLElement;
+      if (thumb.classList.contains('range-slider__thumb-left')) {
+        this.addLeftThumbEvents(thumb);
+      } else if (thumb.classList.contains('range-slider__thumb-right')) {
+        const leftThumb
+          = this.element?.querySelector('.range-slider__thumb-left')?.getBoundingClientRect()?.left
+          ?? this.element?.querySelector('.range-slider__inner')?.getBoundingClientRect()?.left
+          ?? 0
+        ;
+        const sliderRight
+          = this.element?.querySelector('.range-slider__inner')?.getBoundingClientRect()?.right ?? leftThumb;
 
         this.pointermoveEvent = (event: PointerEvent) => {
-          if (event.clientX - sliderLeft < 0) {
-            target.style.left = '0px';
-          } else if (event.clientX > rightThumb) {
-            target.style.left = rightThumb - sliderLeft + 'px';
+          if (event.clientX - leftThumb < 0) {
+            thumb.style.left = leftThumb + 'px';
+          } else if (event.clientX > sliderRight) {
+            thumb.style.left = sliderRight + 'px';
           } else {
-            target.style.left = event.clientX - sliderLeft + 'px';
+            thumb.style.left = event.clientX - leftThumb + 'px';
           }
+          console.log(event.clientX, leftThumb, sliderRight, thumb.style.left);
         };
 
-        document.body.addEventListener('pointermove', this.pointermoveEvent);
+        document.addEventListener('pointermove', this.pointermoveEvent);
 
         this.pointerupEvent = ()=> {
           if (this.pointerdownEvent) {
-            document.body.removeEventListener('pointerdown', this.pointerdownEvent);
+            document.removeEventListener('pointerdown', this.pointerdownEvent);
           }
           if (this.pointermoveEvent) {
-            document.body.removeEventListener('pointermove', this.pointermoveEvent);
+            document.removeEventListener('pointermove', this.pointermoveEvent);
           }
           if (this.pointerupEvent) {
-            document.body.removeEventListener('pointerup', this.pointerupEvent);
+            document.removeEventListener('pointerup', this.pointerupEvent);
           }
         };
 
-        document.body.addEventListener('pointerup', this.pointerupEvent);
+        document.addEventListener('pointerup', this.pointerupEvent);
+
       }
     }
 
     this.element.addEventListener('pointerdown', this.pointerdownEvent);
+  }
+
+  private addLeftThumbEvents(leftThumb: HTMLElement) {
+    const sliderLeft= this.innerSlider.getBoundingClientRect().left;
+    // const sliderLeft
+    //   = this.innerSlider.offsetLeft;
+    // console.log('this.innerSlider.offsetLeft: ', sliderLeft);
+    // console.log('this.leftThumb.offsetLeft: ', this.leftThumb.offsetLeft);
+
+    const rightLimit = this.rightThumb.offsetLeft;
+      // = this.element.querySelector('.range-slider__thumb-right')?.getBoundingClientRect().left ?? sliderLeft;
+      // = parseInt(this.rightThumb.style.left) ?? sliderLeft;
+    // console.log('this.rightThumb.style.left: ', this.rightThumb.style.left);
+    // const leftThumb
+    //   = this.element?.querySelector('.range-slider__thumb-left')?.getBoundingClientRect()?.left
+    //   // ?? this.element?.querySelector('.range-slider__inner')?.getBoundingClientRect()?.left
+    //   ?? 0
+    ;
+
+    // console.log(leftLimit, leftThumb);
+
+    this.pointermoveEvent = (event: PointerEvent) => {
+      const inSliderCord = event.clientX - sliderLeft;
+
+      // console.log('inSliderCord: ', inSliderCord);
+      // console.log('sliderLeft: ', sliderLeft);
+      // console.log('rightLimit: ', rightLimit);
+
+      if (inSliderCord < 0) {
+        leftThumb.style.left = '0px';
+      } else if (inSliderCord > rightLimit) {
+        leftThumb.style.left = rightLimit + 'px';
+      } else {
+        leftThumb.style.left = inSliderCord + 'px';
+      }
+      // console.log('leftThumb.style.left: ', leftThumb.style.left);
+    };
+
+    document.addEventListener('pointermove', this.pointermoveEvent);
+
+    this.pointerupEvent = () => {
+      if (this.pointerdownEvent) {
+        document.removeEventListener('pointerdown', this.pointerdownEvent);
+      }
+      if (this.pointermoveEvent) {
+        document.removeEventListener('pointermove', this.pointermoveEvent);
+      }
+      if (this.pointerupEvent) {
+        document.removeEventListener('pointerup', this.pointerupEvent);
+      }
+    };
+
+    document.addEventListener('pointerup', this.pointerupEvent);
   }
 }
