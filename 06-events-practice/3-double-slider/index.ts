@@ -72,45 +72,51 @@ export default class DoubleSlider {
       if (thumb.classList.contains('range-slider__thumb-left')) {
         this.addLeftThumbEvents(thumb);
       } else if (thumb.classList.contains('range-slider__thumb-right')) {
-        const leftThumb
-          = this.element?.querySelector('.range-slider__thumb-left')?.getBoundingClientRect()?.left
-          ?? this.element?.querySelector('.range-slider__inner')?.getBoundingClientRect()?.left
-          ?? 0
-        ;
-        const sliderRight
-          = this.element?.querySelector('.range-slider__inner')?.getBoundingClientRect()?.right ?? leftThumb;
-
-        this.pointermoveEvent = (event: PointerEvent) => {
-          if (event.clientX - leftThumb < 0) {
-            thumb.style.left = leftThumb + 'px';
-          } else if (event.clientX > sliderRight) {
-            thumb.style.left = sliderRight + 'px';
-          } else {
-            thumb.style.left = event.clientX - leftThumb + 'px';
-          }
-          console.log(event.clientX, leftThumb, sliderRight, thumb.style.left);
-        };
-
-        document.addEventListener('pointermove', this.pointermoveEvent);
-
-        this.pointerupEvent = ()=> {
-          if (this.pointerdownEvent) {
-            document.removeEventListener('pointerdown', this.pointerdownEvent);
-          }
-          if (this.pointermoveEvent) {
-            document.removeEventListener('pointermove', this.pointermoveEvent);
-          }
-          if (this.pointerupEvent) {
-            document.removeEventListener('pointerup', this.pointerupEvent);
-          }
-        };
-
-        document.addEventListener('pointerup', this.pointerupEvent);
-
+        this.addRightThumbEvents(thumb);
       }
     }
 
     this.element.addEventListener('pointerdown', this.pointerdownEvent);
+  }
+
+  private addRightThumbEvents(rightThumb: HTMLElement) {
+    // const leftLimit = this.leftThumb.offsetLeft + this.leftThumb.getBoundingClientRect().width;
+      // = this.element?.querySelector('.range-slider__thumb-left')?.getBoundingClientRect()?.left
+      // ?? this.element?.querySelector('.range-slider__inner')?.getBoundingClientRect()?.left
+      // ?? 0
+    // ;
+    const sliderLeft= this.innerSlider.getBoundingClientRect().left;
+    const sliderRight= this.rightThumb.getBoundingClientRect().right;
+    const leftLimit = this.leftThumb.offsetLeft + this.leftThumb.getBoundingClientRect().width;
+    const rigthLimit = this.innerSlider.getBoundingClientRect().width;
+
+    this.pointermoveEvent = (event: PointerEvent) => {
+      const inSliderCord = event.clientX - sliderLeft;
+      if (inSliderCord < leftLimit) {
+        rightThumb.style.left = leftLimit + 'px';
+      } else if (inSliderCord > rigthLimit) {
+        rightThumb.style.left = rigthLimit + 'px';
+      } else {
+        rightThumb.style.left = inSliderCord + 'px';
+      }
+      console.log(event.clientX, leftLimit, sliderRight, rightThumb.style.left);
+    };
+
+    document.addEventListener('pointermove', this.pointermoveEvent);
+
+    this.pointerupEvent = () => {
+      if (this.pointerdownEvent) {
+        document.removeEventListener('pointerdown', this.pointerdownEvent);
+      }
+      if (this.pointermoveEvent) {
+        document.removeEventListener('pointermove', this.pointermoveEvent);
+      }
+      if (this.pointerupEvent) {
+        document.removeEventListener('pointerup', this.pointerupEvent);
+      }
+    };
+
+    document.addEventListener('pointerup', this.pointerupEvent);
   }
 
   private addLeftThumbEvents(leftThumb: HTMLElement) {
