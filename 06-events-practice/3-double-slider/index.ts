@@ -28,11 +28,13 @@ export default class DoubleSlider {
   private readonly rightThumb: HTMLSpanElement;
   private readonly innerSlider: HTMLDivElement;
   private readonly sliderBar: HTMLSpanElement;
+  private readonly valueMax: HTMLSpanElement;
+  private readonly valueMin: HTMLSpanElement;
 
   constructor(sliderConf: Options = {}) {
     this.min = sliderConf?.min || 0;
     this.max = sliderConf?.max || this.min + 100;
-    this.formatValue = sliderConf?.formatValue ?? function(value: number) { return value.toString() };
+    this.formatValue = sliderConf?.formatValue ?? function(value: number) { return Math.round(value).toString() };
     this.selected = sliderConf?.selected ?? { from: this.max * 0.25, to: this.max * 0.75};
 
     this.element = this.makeSliderTemplate();
@@ -40,6 +42,8 @@ export default class DoubleSlider {
     this.leftThumb = <HTMLSpanElement>this.element.querySelector('.range-slider__thumb-left');
     this.rightThumb = <HTMLSpanElement>this.element.querySelector('.range-slider__thumb-right');
     this.innerSlider = <HTMLDivElement>this.element.querySelector('.range-slider__inner');
+    this.valueMax = <HTMLSpanElement>this.element.querySelector('.range-slider__value-max');
+    this.valueMin = <HTMLSpanElement>this.element.querySelector('.range-slider__value-min');
 
     this.addThumbEvents();
   }
@@ -56,13 +60,13 @@ export default class DoubleSlider {
 
     return createElement(`
         <div class="range-slider">
-          <span>${this.formatValue(this.min)}</span>
+          <span class="range-slider__value-min">${this.formatValue(this.min)}</span>
           <div class="range-slider__inner">
             <span class="range-slider__progress" style="left: ${left}%; right: ${right}%"></span>
             <span class="range-slider__thumb-left" style="left: ${left}%"></span>
             <span class="range-slider__thumb-right" style="right: ${right}%"></span>
           </div>
-          <span>${this.formatValue(this.max)}</span>
+          <span class="range-slider__value-max">${this.formatValue(this.max)}</span>
         </div>
     `);
   }
@@ -71,16 +75,16 @@ export default class DoubleSlider {
     this.pointerdownEvent = (event: PointerEvent) => {
       const thumb = event.target as HTMLElement;
       if (thumb.classList.contains('range-slider__thumb-left')) {
-        this.addLeftThumbEvents(thumb, this.sliderBar);
+        this.addLeftThumbEvents(this);
       } else if (thumb.classList.contains('range-slider__thumb-right')) {
-        this.addRightThumbEvents(thumb, this.sliderBar);
+        this.addRightThumbEvents(this);
       }
     }
 
     this.element.addEventListener('pointerdown', this.pointerdownEvent);
   }
 
-  private addRightThumbEvents(rightThumb: HTMLElement, sliderBar: HTMLSpanElement) {
+  private addRightThumbEvents(doubleSlider: DoubleSlider) {
     const sliderLeft= this.innerSlider.getBoundingClientRect().left;
     const leftLimit = this.leftThumb.offsetLeft + this.leftThumb.getBoundingClientRect().width;
     const sliderWidth = this.innerSlider.getBoundingClientRect().width;
@@ -90,14 +94,17 @@ export default class DoubleSlider {
       const inSliderCord = event.clientX - sliderLeft;
       const positionPercent = 100 * inSliderCord / sliderWidth;
       if (inSliderCord < leftLimit) {
-        rightThumb.style.left = leftPercent + '%';
-        sliderBar.style.right = 100 - leftPercent + '%';
+        doubleSlider.rightThumb.style.left = leftPercent + '%';
+        doubleSlider.sliderBar.style.right = 100 - leftPercent + '%';
+        doubleSlider.valueMax.textContent = doubleSlider.formatValue(leftPercent / 100 * doubleSlider.max);
       } else if (inSliderCord > sliderWidth) {
-        rightThumb.style.left = 100 + '%';
-        sliderBar.style.right = 0 + '%';
+        doubleSlider.rightThumb.style.left = 100 + '%';
+        doubleSlider.sliderBar.style.right = 0 + '%';
+        doubleSlider.valueMax.textContent = doubleSlider.formatValue(doubleSlider.max);
       } else {
-        rightThumb.style.left = positionPercent + '%';
-        sliderBar.style.right = 100 - positionPercent + '%';
+        doubleSlider.rightThumb.style.left = positionPercent + '%';
+        doubleSlider.sliderBar.style.right = 100 - positionPercent + '%';
+        doubleSlider.valueMax.textContent = doubleSlider.formatValue(positionPercent / 100 * doubleSlider.max);
       }
     };
 
@@ -106,7 +113,7 @@ export default class DoubleSlider {
     this.addThumbsPointerListeners();
   }
 
-  private addLeftThumbEvents(leftThumb: HTMLElement, sliderBar: HTMLSpanElement) {
+  private addLeftThumbEvents(doubleSlider: DoubleSlider) {
     const sliderLeft= this.innerSlider.getBoundingClientRect().left;
     const rightLimit = this.rightThumb.offsetLeft;
     const sliderWidth = this.innerSlider.getBoundingClientRect().width;
@@ -116,14 +123,17 @@ export default class DoubleSlider {
       const inSliderCord = event.clientX - sliderLeft;
       const positionPercent = 100 * inSliderCord / sliderWidth;
       if (inSliderCord < 0) {
-        leftThumb.style.left = '0%';
-        sliderBar.style.left = '0%';
+        doubleSlider.leftThumb.style.left = '0%';
+        doubleSlider.sliderBar.style.left = '0%';
+        doubleSlider.valueMin.textContent = doubleSlider.formatValue(doubleSlider.min);
       } else if (inSliderCord > rightLimit) {
-        leftThumb.style.left = rightPercent + '%';
-        sliderBar.style.left = rightPercent + '%';
+        doubleSlider.leftThumb.style.left = rightPercent + '%';
+        doubleSlider.sliderBar.style.left = rightPercent + '%';
+        doubleSlider.valueMin.textContent = doubleSlider.formatValue(rightPercent / 100 * doubleSlider.max);
       } else {
-        leftThumb.style.left = positionPercent + '%';
-        sliderBar.style.left = positionPercent + '%';
+        doubleSlider.leftThumb.style.left = positionPercent + '%';
+        doubleSlider.sliderBar.style.left = positionPercent + '%';
+        doubleSlider.valueMin.textContent = doubleSlider.formatValue(positionPercent / 100 * doubleSlider.max);
       }
     };
 
