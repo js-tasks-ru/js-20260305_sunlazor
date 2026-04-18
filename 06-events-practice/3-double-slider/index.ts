@@ -51,9 +51,10 @@ export default class DoubleSlider {
   }
 
   public destroy() {
-    this.pointerdownEvent = null;
-    this.pointermoveEvent = null;
-    this.pointerupEvent = null;
+    this.removeListeners();
+    if (this.pointerdownEvent) {
+      this.element.removeEventListener('pointerdown', this.pointerdownEvent);
+    }
     this.element.remove();
   }
 
@@ -77,87 +78,73 @@ export default class DoubleSlider {
   private addThumbEvents() {
     this.pointerdownEvent = (event: PointerEvent) => {
       const thumb = event.target as HTMLElement;
-      if (thumb.classList.contains('range-slider__thumb-left')) {
-        this.addLeftThumbEvents(this);
-      } else if (thumb.classList.contains('range-slider__thumb-right')) {
-        this.addRightThumbEvents(this);
+
+      if (thumb.classList.contains('range-slider__thumb-left') ||
+          thumb.classList.contains('range-slider__thumb-right')) {
+        this.removeListeners();
+        if (thumb.classList.contains('range-slider__thumb-left')) {
+          this.addLeftThumbEvents();
+        } else {
+          this.addRightThumbEvents();
+        }
       }
     }
 
     this.element.addEventListener('pointerdown', this.pointerdownEvent);
   }
 
-  private addRightThumbEvents(doubleSlider: DoubleSlider) {
-    const sliderLeft= this.innerSlider.getBoundingClientRect().left;
-    const leftLimit = this.leftThumb.offsetLeft + this.leftThumb.getBoundingClientRect().width;
-    const sliderWidth = this.innerSlider.getBoundingClientRect().width;
-    const leftPercent = 100 * leftLimit / sliderWidth;
+  private addRightThumbEvents() {
+    const { left: sliderLeft, width: sliderWidth } = this.innerSlider.getBoundingClientRect();
 
     this.pointermoveEvent = (event: PointerEvent) => {
       const inSliderCord = event.clientX - sliderLeft;
-      const positionPercent = 100 * inSliderCord / sliderWidth;
-      if (inSliderCord < leftLimit) {
-        doubleSlider.rightThumb.style.left = leftPercent + '%';
-        doubleSlider.sliderBar.style.right = 100 - leftPercent + '%';
-        doubleSlider.selected.to = leftPercent / 100 * doubleSlider.diff + doubleSlider.min;
-      } else if (inSliderCord > sliderWidth) {
-        doubleSlider.rightThumb.style.left = 100 + '%';
-        doubleSlider.sliderBar.style.right = 0 + '%';
-        doubleSlider.selected.to = doubleSlider.max;
-      } else {
-        doubleSlider.rightThumb.style.left = positionPercent + '%';
-        doubleSlider.sliderBar.style.right = 100 - positionPercent + '%';
-        doubleSlider.selected.to = positionPercent / 100 * doubleSlider.diff + doubleSlider.min;
+      let positionPercent = 100 * inSliderCord / sliderWidth;
+
+      const leftPercent = 100 * (this.selected.from - this.min) / this.diff;
+      if (positionPercent < leftPercent) {
+        positionPercent = leftPercent;
+      } else if (positionPercent > 100) {
+        positionPercent = 100;
       }
-      doubleSlider.valueMax.textContent = doubleSlider.formatValue(doubleSlider.selected.to);
+
+      const rightPercent = 100 - positionPercent;
+      this.rightThumb.style.right = rightPercent + '%';
+      this.sliderBar.style.right = rightPercent + '%';
+      this.selected.to = Math.round(this.min + (positionPercent / 100 * this.diff));
+      this.valueMax.textContent = this.formatValue(this.selected.to);
     };
 
     document.addEventListener('pointermove', this.pointermoveEvent);
-
     this.addThumbsPointerListeners();
   }
 
-  private addLeftThumbEvents(doubleSlider: DoubleSlider) {
-    const sliderLeft= this.innerSlider.getBoundingClientRect().left;
-    const rightLimit = this.rightThumb.offsetLeft;
-    const sliderWidth = this.innerSlider.getBoundingClientRect().width;
-    const rightPercent = 100 * rightLimit / sliderWidth;
+  private addLeftThumbEvents() {
+    const { left: sliderLeft, width: sliderWidth } = this.innerSlider.getBoundingClientRect();
 
     this.pointermoveEvent = (event: PointerEvent) => {
       const inSliderCord = event.clientX - sliderLeft;
-      const positionPercent = 100 * inSliderCord / sliderWidth;
-      if (inSliderCord < 0) {
-        doubleSlider.leftThumb.style.left = '0%';
-        doubleSlider.sliderBar.style.left = '0%';
-        doubleSlider.selected.from = doubleSlider.min;
-      } else if (inSliderCord > rightLimit) {
-        doubleSlider.leftThumb.style.left = rightPercent + '%';
-        doubleSlider.sliderBar.style.left = rightPercent + '%';
-        doubleSlider.selected.from = rightPercent / 100 * doubleSlider.diff + doubleSlider.min;
-      } else {
-        doubleSlider.leftThumb.style.left = positionPercent + '%';
-        doubleSlider.sliderBar.style.left = positionPercent + '%';
-        doubleSlider.selected.from = positionPercent / 100 * doubleSlider.diff + doubleSlider.min;
+      let positionPercent = 100 * inSliderCord / sliderWidth;
+
+      const rightPercent = 100 * (this.selected.to - this.min) / this.diff;
+      if (positionPercent < 0) {
+        positionPercent = 0;
+      } else if (positionPercent > rightPercent) {
+        positionPercent = rightPercent;
       }
-      doubleSlider.valueMin.textContent = doubleSlider.formatValue(doubleSlider.selected.from);
+
+      this.leftThumb.style.left = positionPercent + '%';
+      this.sliderBar.style.left = positionPercent + '%';
+      this.selected.from = Math.round(this.min + (positionPercent / 100 * this.diff));
+      this.valueMin.textContent = this.formatValue(this.selected.from);
     };
 
     document.addEventListener('pointermove', this.pointermoveEvent);
-
     this.addThumbsPointerListeners();
   }
 
   private addThumbsPointerListeners() {
     this.pointerupEvent = () => {
-      if (this.pointerdownEvent) {
-        document.removeEventListener('pointerdown', this.pointerdownEvent);
-      }
-      if (this.pointermoveEvent) {
-        document.removeEventListener('pointermove', this.pointermoveEvent);
-      }
-      if (this.pointerupEvent) {
-        document.removeEventListener('pointerup', this.pointerupEvent);
-      }
+      this.removeListeners();
       this.element.dispatchEvent(new CustomEvent('range-select', {
         bubbles: true,
         detail: {
@@ -168,5 +155,16 @@ export default class DoubleSlider {
     };
 
     document.addEventListener('pointerup', this.pointerupEvent);
+  }
+
+  private removeListeners() {
+    if (this.pointermoveEvent) {
+      document.removeEventListener('pointermove', this.pointermoveEvent);
+      this.pointermoveEvent = null;
+    }
+    if (this.pointerupEvent) {
+      document.removeEventListener('pointerup', this.pointerupEvent);
+      this.pointerupEvent = null;
+    }
   }
 }
