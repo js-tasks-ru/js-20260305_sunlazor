@@ -58,8 +58,8 @@ export default class DoubleSlider {
   }
 
   private makeSliderTemplate() {
-    const left = (this.selected.from - this.min) / (this.max - this.min) * 100;
-    const right = 100 - (this.selected.to - this.min) / (this.max - this.min) * 100;
+    const left = (this.selected.from - this.min) / this.diff * 100;
+    const right = 100 - (this.selected.to - this.min) / this.diff * 100;
 
     return createElement(`
         <div class="range-slider">
@@ -99,16 +99,17 @@ export default class DoubleSlider {
       if (inSliderCord < leftLimit) {
         doubleSlider.rightThumb.style.left = leftPercent + '%';
         doubleSlider.sliderBar.style.right = 100 - leftPercent + '%';
-        doubleSlider.valueMax.textContent = doubleSlider.formatValue(leftPercent / 100 * doubleSlider.diff + doubleSlider.min);
+        doubleSlider.selected.to = leftPercent / 100 * doubleSlider.diff + doubleSlider.min;
       } else if (inSliderCord > sliderWidth) {
         doubleSlider.rightThumb.style.left = 100 + '%';
         doubleSlider.sliderBar.style.right = 0 + '%';
-        doubleSlider.valueMax.textContent = doubleSlider.formatValue(doubleSlider.max);
+        doubleSlider.selected.to = doubleSlider.max;
       } else {
         doubleSlider.rightThumb.style.left = positionPercent + '%';
         doubleSlider.sliderBar.style.right = 100 - positionPercent + '%';
-        doubleSlider.valueMax.textContent = doubleSlider.formatValue(positionPercent / 100 * doubleSlider.diff + doubleSlider.min);
+        doubleSlider.selected.to = positionPercent / 100 * doubleSlider.diff + doubleSlider.min;
       }
+      doubleSlider.valueMax.textContent = doubleSlider.formatValue(doubleSlider.selected.to);
     };
 
     document.addEventListener('pointermove', this.pointermoveEvent);
@@ -128,16 +129,17 @@ export default class DoubleSlider {
       if (inSliderCord < 0) {
         doubleSlider.leftThumb.style.left = '0%';
         doubleSlider.sliderBar.style.left = '0%';
-        doubleSlider.valueMin.textContent = doubleSlider.formatValue(doubleSlider.min);
+        doubleSlider.selected.from = doubleSlider.min;
       } else if (inSliderCord > rightLimit) {
         doubleSlider.leftThumb.style.left = rightPercent + '%';
         doubleSlider.sliderBar.style.left = rightPercent + '%';
-        doubleSlider.valueMin.textContent = doubleSlider.formatValue(rightPercent / 100 * doubleSlider.diff + doubleSlider.min);
+        doubleSlider.selected.from = rightPercent / 100 * doubleSlider.diff + doubleSlider.min;
       } else {
         doubleSlider.leftThumb.style.left = positionPercent + '%';
         doubleSlider.sliderBar.style.left = positionPercent + '%';
-        doubleSlider.valueMin.textContent = doubleSlider.formatValue(positionPercent / 100 * doubleSlider.diff + doubleSlider.min);
+        doubleSlider.selected.from = positionPercent / 100 * doubleSlider.diff + doubleSlider.min;
       }
+      doubleSlider.valueMin.textContent = doubleSlider.formatValue(doubleSlider.selected.from);
     };
 
     document.addEventListener('pointermove', this.pointermoveEvent);
@@ -159,8 +161,8 @@ export default class DoubleSlider {
       this.element.dispatchEvent(new CustomEvent('range-select', {
         bubbles: true,
         detail: {
-          from: parseInt(this.valueMin.textContent),
-          to: parseInt(this.valueMin.textContent),
+          from: this.selected.from,
+          to: this.selected.to,
         }
       }));
     };
