@@ -30,10 +30,12 @@ export default class DoubleSlider {
   private readonly sliderBar: HTMLSpanElement;
   private readonly valueMax: HTMLSpanElement;
   private readonly valueMin: HTMLSpanElement;
+  private diff: number;
 
   constructor(sliderConf: Options = {}) {
-    this.min = sliderConf?.min || 0;
+    this.min = sliderConf?.min || 100;
     this.max = sliderConf?.max || this.min + 100;
+    this.diff = this.max - this.min;
     this.formatValue = sliderConf?.formatValue ?? function(value: number) { return Math.round(value).toString() };
     this.selected = sliderConf?.selected ?? { from: this.min, to: this.max};
 
@@ -96,7 +98,7 @@ export default class DoubleSlider {
       if (inSliderCord < leftLimit) {
         doubleSlider.rightThumb.style.left = leftPercent + '%';
         doubleSlider.sliderBar.style.right = 100 - leftPercent + '%';
-        doubleSlider.valueMax.textContent = doubleSlider.formatValue(leftPercent / 100 * doubleSlider.max);
+        doubleSlider.valueMax.textContent = doubleSlider.formatValue(leftPercent / 100 * doubleSlider.diff + doubleSlider.min);
       } else if (inSliderCord > sliderWidth) {
         doubleSlider.rightThumb.style.left = 100 + '%';
         doubleSlider.sliderBar.style.right = 0 + '%';
@@ -104,7 +106,7 @@ export default class DoubleSlider {
       } else {
         doubleSlider.rightThumb.style.left = positionPercent + '%';
         doubleSlider.sliderBar.style.right = 100 - positionPercent + '%';
-        doubleSlider.valueMax.textContent = doubleSlider.formatValue(positionPercent / 100 * doubleSlider.max);
+        doubleSlider.valueMax.textContent = doubleSlider.formatValue(positionPercent / 100 * doubleSlider.diff + doubleSlider.min);
       }
     };
 
@@ -129,11 +131,11 @@ export default class DoubleSlider {
       } else if (inSliderCord > rightLimit) {
         doubleSlider.leftThumb.style.left = rightPercent + '%';
         doubleSlider.sliderBar.style.left = rightPercent + '%';
-        doubleSlider.valueMin.textContent = doubleSlider.formatValue(rightPercent / 100 * doubleSlider.max);
+        doubleSlider.valueMin.textContent = doubleSlider.formatValue(rightPercent / 100 * doubleSlider.diff + doubleSlider.min);
       } else {
         doubleSlider.leftThumb.style.left = positionPercent + '%';
         doubleSlider.sliderBar.style.left = positionPercent + '%';
-        doubleSlider.valueMin.textContent = doubleSlider.formatValue(positionPercent / 100 * doubleSlider.max);
+        doubleSlider.valueMin.textContent = doubleSlider.formatValue(positionPercent / 100 * doubleSlider.diff + doubleSlider.min);
       }
     };
 
